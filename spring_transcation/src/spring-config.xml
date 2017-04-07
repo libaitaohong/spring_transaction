@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+      http://www.springframework.org/schema/context
+      http://www.springframework.org/schema/context/spring-context-2.5.xsd
+      http://www.springframework.org/schema/tx
+      http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+
+    <!--引入外部的属性文件-->
+    <context:property-placeholder location="classpath*:jdbc.properties"/>
+    <!--配置c3p0连接池-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driverClass}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--配置业务层类-->
+    <bean id="accountService" class="demo1.AccountServiceImpl">
+        <property name="accountDao" ref="accountDao"/>
+        <!--注入事务管理的模板：-->
+        <property name="transcationTemplate" ref="transcationTemplate"></property>
+    </bean>
+    <!--配置DAO类-->
+    <bean id="accountDao" class="demo1.AccountDaoImpl">
+        <!--注入连接池，因为继承了JdbcDaoSupport类，所以注入连接池后，里面就有了jdbc模板-->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--配置事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!--配置事务管理的模板：Spring为了简化事务管理的代码而提供的类.
+    模板是简化事务管理的，真正进行事务管理的是transactionManager，所以注入它-->
+    <bean id="transcationTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="transactionManager"></property>
+    </bean>
+</beans>
